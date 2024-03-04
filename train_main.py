@@ -49,15 +49,15 @@ class TrainMain:
 
         # Read in model hyperparameters
         with open("commonroad_rl/hyperparams/ppo.yml", "r") as hyperparam_file:
-            hyperparams = yaml.safe_load(hyperparam_file)["commonroad-v1"]
+            self.hyperparams = yaml.safe_load(hyperparam_file)["commonroad-v1"]
 
         # Save settings for later use
         with open(os.path.join(self.log_path, "model_hyperparameters.yml"), "w") as hyperparam_file:
-            yaml.dump(hyperparams, hyperparam_file)
+            yaml.dump(self.hyperparams, hyperparam_file)
 
         # Remove `normalize` as it will be handled explicitly later
-        if "normalize" in hyperparams:
-            del hyperparams["normalize"]
+        if "normalize" in self.hyperparams:
+            del self.hyperparams["normalize"]
 
     def create_training_environment(self):
         # Create a Gym-based RL environment with specified data paths and environment configurations
@@ -72,7 +72,7 @@ class TrainMain:
                                      **self.env_configs)
 
         # Wrap the environment with a monitor to keep an record of the learning process
-        training_env = Monitor(training_env, self.log_path + "0", info_keywords=self.info_keywords)
+        # training_env = Monitor(training_env, self.log_path + "0", info_keywords=self.info_keywords)
 
         # # Vectorize the environment with a callable argument
         # def make_training_env():
@@ -153,7 +153,7 @@ def create_model_and_start_learning():
     model = PPO(env=training_env, **train_obj.hyperparams)
 
     # Start the learning process with the evaluation callback
-    n_timesteps=5000
+    n_timesteps = 1000000
     # model.learn(n_timesteps, eval_callback)
     model.learn(n_timesteps)
 

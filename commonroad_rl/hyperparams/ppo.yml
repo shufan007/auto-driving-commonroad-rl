@@ -13,6 +13,7 @@ commonroad-v1:
   learning_rate: !!float 5e-4
   clip_range: 0.2
   vf_coef: 0.5
+  verbose: 1
 
 commonroad-falsification-v0:
   normalize: true
