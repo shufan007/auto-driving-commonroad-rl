@@ -328,7 +328,10 @@ class CommonroadEnv(gym.Env):
             return
 
         # update timestep in draw_params
-        self.draw_params.update({"scenario": {"time_begin": self.current_step, "time_end": self.current_step}})
+        # self.draw_params.update({"scenario": {"time_begin": self.current_step, "time_end": self.current_step}})
+        scenario_timestemp = {"time_begin": self.current_step, "time_end": self.current_step}
+        for k, v in scenario_timestemp.items():
+            self.draw_params[k] = v
 
         # Draw scenario, goal, sensing range and detected obstacles
         self.scenario.draw(self.cr_render, self.draw_params)
