@@ -19,6 +19,17 @@ from stable_baselines3 import PPO
 from commonroad_rl.gym_commonroad.commonroad_env import CommonroadEnv
 
 
+class DotDict(dict):
+    def __init__(self, *args, **kwargs):
+        super(DotDict, self).__init__(*args, **kwargs)
+
+    def __getattr__(self, key):
+        value = self[key]
+        if isinstance(value, dict):
+            value = DotDict(value)
+        return value
+
+
 def time2str(timestamp):
     d = datetime.fromtimestamp(timestamp)
     timestamp_str = d.strftime('%Y-%m-%d %H:%M:%S')
@@ -341,18 +352,9 @@ def task_args_parser(argv, usage=None):
     return args
 
 
-def run_train(argv):
-    usage = '''
-    example:
-    python model_train_main.py --lr_init 0.0004 --lr_decay_rate 0.95 --n_steps 1024 --n_epochs 4 --batch_size 64 --total_timesteps 20000000 --check_point_timesteps 100000 --n_envs 4 --start_timesteps 0 --log_path ppo_mlp
-    test
-    python model_train_main.py --test_step 100 --test_model_path D:\dev\mygithub\auto-driving-commonroad-rl\logs\ppo_mlp\model_10w
-    '''
-
-    args = task_args_parser(argv, usage)
-
+def run_context(args):
     base_path = 'logs'
-    log_path = args.log_path if args.log_path else f"ppo_{args.backbone}/"
+    log_path = args.get("log_path", f"ppo_{args.backbone}/")
     log_path = os.path.join(base_path, log_path)
     print(f"log_path: {log_path}")
     print(f"archive_path: {args.archive_path}")
@@ -387,6 +389,18 @@ def run_train(argv):
     print(f"end time: {time2str(time.time())}, time_elapsed: {time.time() - t0}")
 
 
+def run(argv):
+    usage = '''
+    example:
+    python model_train_main.py --lr_init 0.0004 --lr_decay_rate 0.95 --n_steps 1024 --n_epochs 4 --batch_size 64 --total_timesteps 20000000 --check_point_timesteps 100000 --n_envs 4 --start_timesteps 0 --log_path ppo_mlp
+    test
+    python model_train_main.py --test_step 100 --test_model_path D:\dev\mygithub\auto-driving-commonroad-rl\logs\ppo_mlp\model_10w
+    '''
+    args = task_args_parser(argv, usage)
+
+    run_context(args)
+
+
 # Define a customized callback function to save the vectorized and normalized environment wrapper
 class SaveVecNormalizeCallback(BaseCallback):
     def __init__(self, save_path: str, verbose=1):
@@ -403,7 +417,34 @@ class SaveVecNormalizeCallback(BaseCallback):
         print("Saved vectorized and normalized environment to {}".format(save_path_name))
 
 
+def run_debug():
+    args = {
+        "n_envs": 1,
+        "backbone": 'cnn',
+        "n_steps": 512,
+        "n_epochs": 4,
+        "batch_size": '4',
+        "lr_init": 1e-3,
+        "lr_decay_rate": 0.95,
+        "total_timesteps": 20000,
+        "check_point_timesteps": 10000,
+        "start_timesteps": 0,
+        "log_path": 'ppo_mlp_debug',
+        "data_path": '',
+        # "test_model_path": '',   # .\logs\ppo_mlp\model_1000w
+        "test_model_path": '.\logs\ppo_mlp\model_1000w',
+        "test_step": 100,
+        "archive_timesteps": 100000,
+        "archive_path": '',
+    }
+    args = DotDict(args)
+
+    run_context(args)
+
+
 if __name__ == '__main__':
-    run_train(sys.argv[1:])
+    # print(f"sys.argv:{sys.argv}")
+    # run(sys.argv[1:])
+    run_debug()
 
 
